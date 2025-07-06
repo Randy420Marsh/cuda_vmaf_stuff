@@ -8,8 +8,10 @@ import os
 import sys
 import tempfile
 import re
+import shutil # Import shutil for file copying
 
-#python -s find_crf.py -i "test.mp4" -e hevc_nvenc -p p7 -t 98 --min-quality-param 1 --max-quality-param 40 --search-precision 0.1 --max-iterations 10 --sample-duration 60 --save-frames-to "$HOME/cuda_vmaf_stuff/frames"
+#python -s find_crf.py -i "test.mp4" -e hevc_nvenc -p p7 -t 95 --min-quality-param 20 --max-quality-param 30 --search-precision 1.0 --max-iterations 10 --sample-duration 60 --save-frames-to "$HOME/cuda_vmaf_stuff/frames" --save-samples-to "$HOME/cuda_vmaf_stuff/frames"
+
 
 # --- Configuration (These will be overwritten by command-line arguments if provided) ---
 DEFAULT_TARGET_VMAF = 95.0
@@ -247,14 +249,14 @@ def find_optimal_quality_param(input_file, target_vmaf, encoder, preset,
                                original_file_size_mb,
                                min_quality_param, max_quality_param,
                                search_precision, max_iterations, sample_duration_seconds,
-                               save_frames_to): # Added save_frames_to
+                               save_frames_to, save_samples_to): # Added save_samples_to
     """Performs a binary search to find the quality parameter (QP/CRF) that achieves the target VMAF score."""
     props = get_video_properties(input_file)
     # Create samples from the middle of the video for a representative test
     sample_start_time = max(0, (props['duration'] / 2) - (sample_duration_seconds / 2))
 
     encoder_qp_info = get_encoder_quality_param_info(encoder)
-    quality_flag = encoder_qp_info['flag']
+    quality_flag = encoder_qp_info['flag'] # This will be '-qp' or '-crf'
 
     # Use command-line provided min/max, otherwise fall back to encoder-specific or global defaults
     low_param = min_quality_param if min_quality_param is not None else encoder_qp_info['min']
@@ -300,6 +302,9 @@ def find_optimal_quality_param(input_file, target_vmaf, encoder, preset,
                 else:
                     print(f"📏 Estimated Full Video Size: {estimated_full_video_size_mb:.2f} MB (Original size unknown or zero)")
 
+            # Determine the quality parameter type for filename (QP or CRF)
+            quality_param_type = quality_flag.strip('-').upper()
+
             # --- Optional: Save first frame ---
             if save_frames_to:
                 # Ensure the output directory exists
@@ -311,24 +316,28 @@ def find_optimal_quality_param(input_file, target_vmaf, encoder, preset,
                         print(f"Error creating directory '{save_frames_to}': {e}. Skipping frame save for this run.")
                         save_frames_to = None # Disable further saving if creation fails
 
+                # Use dist_path (distorted sample) for frame extraction
                 if save_frames_to and vmaf_score is not None and bitrate_mbps is not None and estimated_full_video_size_mb is not None:
-                    # Format filename: "VMAF_score_Bitrate_X.XXMbps_Size_Y.YYMB_Z.ZZPercent.png"
-                    filename_vmaf = f"VMAF{vmaf_score:.2f}".replace('.', '_')
-                    filename_bitrate = f"Bitrate{bitrate_mbps:.2f}Mbps".replace('.', '_')
+                    # Format filename: "VMAF-score_Bitrate-X.XXMbps_Size-Y.YYMB-Z.ZZPercent_QP-28.png"
+                    filename_vmaf = f"VMAF-{vmaf_score:.2f}"
+                    filename_bitrate = f"Bitrate-{bitrate_mbps:.2f}Mbps"
                     
                     if percentage_of_original is not None:
-                        filename_size_info = f"Size{estimated_full_video_size_mb:.2f}MB_{percentage_of_original:.2f}Percent".replace('.', '_')
+                        filename_size_info = f"Size-{estimated_full_video_size_mb:.2f}MB-{percentage_of_original:.2f}Percent"
                     else:
-                        filename_size_info = f"Size{estimated_full_video_size_mb:.2f}MB".replace('.', '_')
+                        filename_size_info = f"Size-{estimated_full_video_size_mb:.2f}MB"
 
-                    frame_filename = f"{filename_vmaf}_{filename_bitrate}_{filename_size_info}.png"
+                    # Add QP/CRF to filename
+                    filename_quality_param = f"{quality_param_type}-{current_param}"
+
+                    frame_filename = f"{filename_vmaf}_{filename_bitrate}_{filename_size_info}_{filename_quality_param}.png"
                     frame_path = os.path.join(save_frames_to, frame_filename)
 
                     print(f"🖼️  Saving first frame to: {frame_path}")
                     frame_extract_command = [
                         'ffmpeg',
                         '-v', 'error', # Suppress ffmpeg's own output during frame extraction
-                        '-i', dist_path,
+                        '-i', dist_path, # Use distorted sample
                         '-vframes', '1',
                         '-y', # Overwrite if exists
                         frame_path
@@ -342,6 +351,41 @@ def find_optimal_quality_param(input_file, target_vmaf, encoder, preset,
                         print("FFmpeg stderr:\n", e.stderr.decode() if e.stderr else "")
                     except FileNotFoundError:
                         print("Error: ffmpeg command not found for frame extraction. Please ensure ffmpeg is in your PATH.")
+
+            # --- Optional: Save distorted video sample ---
+            if save_samples_to:
+                # Ensure the output directory for samples exists
+                if not os.path.exists(save_samples_to):
+                    try:
+                        os.makedirs(save_samples_to)
+                        print(f"Created output directory for samples: {save_samples_to}")
+                    except OSError as e:
+                        print(f"Error creating directory '{save_samples_to}': {e}. Skipping sample save for this run.")
+                        save_samples_to = None # Disable further saving if creation fails
+
+                if save_samples_to and vmaf_score is not None and bitrate_mbps is not None and estimated_full_video_size_mb is not None:
+                    # Format filename similar to frames but for video
+                    filename_vmaf = f"VMAF-{vmaf_score:.2f}"
+                    filename_bitrate = f"Bitrate-{bitrate_mbps:.2f}Mbps"
+                    
+                    if percentage_of_original is not None:
+                        filename_size_info = f"Size-{estimated_full_video_size_mb:.2f}MB-{percentage_of_original:.2f}Percent"
+                    else:
+                        filename_size_info = f"Size-{estimated_full_video_size_mb:.2f}MB"
+                    
+                    # Add QP/CRF to filename
+                    filename_quality_param = f"{quality_param_type}-{current_param}"
+
+                    sample_filename = f"{filename_vmaf}_{filename_bitrate}_{filename_size_info}_{filename_quality_param}.mp4"
+                    sample_path = os.path.join(save_samples_to, sample_filename)
+
+                    print(f"🎥 Saving distorted sample to: {sample_path}")
+                    try:
+                        # Copy the distorted sample from temp_dir to the specified save_samples_to directory
+                        shutil.copyfile(dist_path, sample_path)
+                        print("✅ Distorted sample saved successfully.")
+                    except IOError as e:
+                        print(f"Error saving distorted sample: {e}")
 
 
             if vmaf_score is None:
@@ -431,7 +475,13 @@ def main():
         '--save-frames-to',
         type=str,
         default=None,
-        help='Optional: Directory to save the first frame of each distorted sample. Filenames will include VMAF, bitrate, and size info.'
+        help='Optional: Directory to save the first frame of each distorted sample. Filenames will include VMAF, bitrate, size, and QP/CRF info.'
+    )
+    parser.add_argument(
+        '--save-samples-to', # New argument for saving video samples
+        type=str,
+        default=None,
+        help='Optional: Directory to save each distorted video sample. Filenames will include VMAF, bitrate, size, and QP/CRF info.'
     )
     args = parser.parse_args()
 
@@ -450,13 +500,14 @@ def main():
         original_file_size_mb,
         args.min_quality_param, args.max_quality_param,
         args.search_precision, args.max_iterations, args.sample_duration,
-        args.save_frames_to # Pass the new argument
+        args.save_frames_to, # Pass the new argument
+        args.save_samples_to # Pass the new argument
     )
 
     print(f"\n🎉 Optimal {quality_flag_final.strip('-').upper()} found: {optimal_param}")
     print(f"This value is the best estimate to achieve a VMAF score of ~{args.target_vmaf}.")
     print("\nExample FFmpeg command for full video encode:")
-    print(f"ffmpeg -i \"{args.input}\" -c:v {args.encoder} {quality_flag_final} {optimal_param} -preset {args.preset} -c:a copy output.mkv")
+    print(f"ffmpeg -i \"{args.input}\" -c:v {args.encoder} {quality_flag_final} {optimal_param} -preset {args.preset} -c:a copy -f mp4 -movflags +faststart output.mp4")
 
 if __name__ == '__main__':
     main()
