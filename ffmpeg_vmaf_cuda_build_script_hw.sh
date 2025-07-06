@@ -68,14 +68,15 @@ sudo apt-get update -qq && sudo apt-get -y install \
   libmp3lame-dev \
   libnuma-dev \
   libopenjp2-7-dev \
-  libopus-dev \
   libsdl2-dev \
   libssl-dev \
   libtool \
   libva-dev \
   libvdpau-dev \
-  libvorbis-dev \
+  libwebp-dev \
   libvpx-dev \
+  libvorbis-dev \
+  libopus-dev \
   libx264-dev \
   libx265-dev \
   libxcb1-dev \
@@ -265,6 +266,9 @@ VMAF_PUBLIC_INCLUDE_DIR="${HOME}/build_temp/vmaf/libvmaf/include"
   --enable-libfdk-aac \
   --enable-libfreetype \
   --enable-libmp3lame \
+  --enable-libwebp \
+  --enable-libvpx \
+  --enable-libvorbis \
   --enable-libopus \
   --enable-libsvtav1 \
   --enable-libdav1d \
@@ -310,22 +314,31 @@ echo "Verifying FFmpeg hardware acceleration and encoders..."
 ffmpeg -hwaccels
 ffmpeg -encoders
 
-echo "Running VMAF analysis with GPU decoding (this will output to null)..."
+echo "Running GPU VMAF analysis with GPU decoding (this will output to null)..."
 ffmpeg -hwaccel cuda -hwaccel_output_format cuda -i "${HOME}/build/data/ref.mp4" \
     -hwaccel cuda -hwaccel_output_format cuda -i "${HOME}/build/data/dist-nvenc.mp4" \
-    -filter_complex "[0:v]scale_cuda=1280:-2:format=yuv420p:interp_algo=lanczos[ref];[1:v]scale_cuda=1280:-2:format=yuv420p:interp_algo=lanczos[dist];[dist][ref]libvmaf_cuda" \
+    -filter_complex "[0:v]scale_cuda=-2:1080:format=yuv420p:interp_algo=lanczos[ref];[1:v]scale_cuda=-2:1080:format=yuv420p:interp_algo=lanczos[dist];[dist][ref]libvmaf_cuda" \
     -f null -
 
-echo "VMAF analysis command executed. Script will pause for 1 seconds."
+echo "GPU VMAF analysis command executed. Script will pause for 1 seconds."
 sleep 1 # sleep duration
 
-echo "Running VMAF analysis with GPU decoding (this will output to null)..."
+echo "Running CPU VMAF analysis with CPU decoding (this will output to null)..."
 ffmpeg -i "${HOME}/build/data/ref.mp4" \
     -i "${HOME}/build/data/dist-nvenc.mp4" \
-    -filter_complex "[0:v]scale=1280:-2:flags=lanczos[ref];[1:v]scale=1280:-2:flags=lanczos[dist];[dist][ref]libvmaf=threads=$(nproc)" \
+    -filter_complex "[0:v]scale=-2:1080:flags=lanczos[ref];[1:v]scale=-2:1080:flags=lanczos[dist];[dist][ref]libvmaf=threads=$(nproc)" \
     -f null -
 
-echo "VMAF analysis command executed. Script will pause for 1 seconds."
+echo "CPU VMAF analysis command executed. Script will pause for 1 seconds."
+sleep 1 # sleep duration
+
+ffmpeg \
+    -i "${HOME}/build/data/ref.mp4" \
+    -i "${HOME}/build/data/dist-nvenc.mp4" \
+    -filter_complex "[0:v]scale=w=-2:h=720:sws_flags=lanczos,format=yuv420p[ref];[1:v]scale=w=-2:h=720:sws_flags=lanczos,format=yuv420p[dist];[dist][ref]libvmaf" \
+    -f null -
+
+echo "CPU VMAF analysis command executed. Script will pause for 1 seconds."
 sleep 1 # sleep duration
 
 ffmpeg -version
