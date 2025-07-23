@@ -14,7 +14,7 @@ import shutil # Import shutil for file copying
 
 
 # --- Configuration (These will be overwritten by command-line arguments if provided) ---
-DEFAULT_TARGET_VMAF = 95.0
+DEFAULT_TARGET_VMAF = 90.0
 QUALITY_PARAM_SEARCH_RANGE_MIN = 0
 QUALITY_PARAM_SEARCH_RANGE_MAX = 51 # Max QP or common CRF max
 
