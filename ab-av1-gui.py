@@ -6,6 +6,10 @@ import queue
 import os
 from datetime import datetime
 
+#needs the ab-av1 to be in path, 
+#for example copy to /usr/local/bin
+#sudo cp ab-av1 /usr/local/bin
+
 class AB_AV1_GUI(tk.Tk):
     """
     A modern and simplified GUI for the AB-AV1 encoder.
@@ -57,7 +61,7 @@ class AB_AV1_GUI(tk.Tk):
         ttk.Label(command_frame, text="Encoding Command Template:", font="-weight bold").grid(row=0, column=0, sticky="w")
         self.command_text = tk.Text(command_frame, height=4, wrap="word", relief="solid", borderwidth=1)
         self.command_text.grid(row=1, column=0, sticky="ew")
-        default_command = "auto-encode --encoder h264_nvenc --input \"{filePath}\" --preset slow --pix-format yuv420p --keyint 120 -o \"{outputFile}\""
+        default_command = "ab-av1 auto-encode --encoder h264_nvenc --input \"{filePath}\" --preset slow --pix-format yuv420p --keyint 120 -o \"{outputFile}\""
         self.command_text.insert("1.0", default_command)
         
         # --- Queue Frame ---

@@ -17,6 +17,16 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
+echo "Setting up Python virtual environment and installing newer Meson..."
+python3 -m venv venv
+source ./venv/bin/activate
+pip install meson
+echo "Python virtual environment configured."
+
+# Ensure that the rest of the script uses the new meson
+# by ensuring the PATH is correct. This is automatically
+# handled by 'source ./venv/bin/activate'.
+
 # --- Set Environment Variables for CUDA and Libraries ---
 # These are crucial for the build process to find CUDA components.
 # LD_LIBRARY_PATH is for runtime linking. This is crucial for the "cannot open shared object file" error.
@@ -26,7 +36,7 @@ set -e
 
 # Note: For static builds, LD_LIBRARY_PATH is less critical for the final binary,
 # but it's still needed for tools run during the build (like pkg-config if it needs to find shared libs).
-export PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:$HOME/build_temp/lib/pkgconfig"
+export PKG_CONFIG_PATH="/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:$HOME/build_temp/lib/pkgconfig:/usr/local/lib/x86_64-linux-gnu/pkgconfig"
 export LIBRARY_PATH="/usr/local/lib:/usr/local/cuda-12.8/lib64:/usr/local/cuda-12.8/targets/x86_64-linux/lib"
 export CUDA_PATH="/usr/local/cuda-12.8"
 export PATH="${CUDA_PATH}/bin:${PATH}"
@@ -58,6 +68,7 @@ sudo apt-get update -qq && sudo apt-get -y install \
   build-essential \
   cmake \
   curl \
+  doxygen \
   git \
   git-core \
   libass-dev \
@@ -178,7 +189,8 @@ echo "Repositories cloned and nv-codec-headers installed."
 
 # --- Install VMAF (static build) ---
 echo "Installing VMAF (static library only)..."
-python3 -m pip install meson
+#python3 -m pip install meson
+#meson 1.3.2 seems to be recent enough maybe
 # python3 --version # This line is for debugging, not necessary for script execution.
 
 cd "$HOME/build_temp/"
@@ -199,7 +211,10 @@ cd "${HOME}/build_temp/vmaf" && \
     -Dbuilt_in_models=true \
     -Denable_avx512=true \
     --buildtype release && \
-    ninja -vC libvmaf/build
+    ninja -vC libvmaf/build && \
+    ninja -vC libvmaf/build test && \
+    ninja -vC libvmaf/build install
+    
 
 cd "$HOME/build_temp/"
 if [ -f "$HOME/build_temp/vmaf/libvmaf/build/src/libvmaf.a" ]; then
@@ -354,10 +369,16 @@ echo "    -hwaccel cuda -hwaccel_output_format cuda -i \"${HOME}/build/data/dist
 echo "    -filter_complex \"[0:v]scale_cuda=1280:-2:format=yuv420p:interp_algo=lanczos[ref];[1:v]scale_cuda=1280:-2:format=yuv420p:interp_algo=lanczos[dist];[dist][ref]libvmaf_cuda\" \\"
 echo "    -f null -"
 echo "---------------------------------------------------"
+echo "Notes on static linking:"
+echo "Because of the NSS (Name Service Switch), glibc does not recommend static links. See more details here."
+echo "https://sourceware.org/glibc/wiki/FAQ#Even_statically_linked_programs_need_some_shared_libraries_which_is_not_acceptable_for_me.__What_can_I_do.3F"
+echo "The libnpp in the CUDA SDK cannot be statically linked."
+echo "Vaapi cannot be statically linked."
+echo "---------------------------------------------------"
 echo "You can do this:"
 echo "sudo nano /etc/ld.so.conf"
 echo "---------------------------------------------------"
-echo "Add these in the file because:"
+echo "Add these in the file:"
 echo "---------------------------------------------------"
 echo "/usr/local/cuda-12.8/lib64"
 echo "/usr/local/cuda-12.8/targets/x86_64-linux/lib"
@@ -365,8 +386,3 @@ echo "---------------------------------------------------"
 echo "and run:"
 echo "sudo ldconfig"
 echo "---------------------------------------------------"
-echo "Notes on static linking:"
-echo "Because of the NSS (Name Service Switch), glibc does not recommend static links. See more details here."
-echo "https://sourceware.org/glibc/wiki/FAQ#Even_statically_linked_programs_need_some_shared_libraries_which_is_not_acceptable_for_me.__What_can_I_do.3F"
-echo "The libnpp in the CUDA SDK cannot be statically linked."
-echo "Vaapi cannot be statically linked."

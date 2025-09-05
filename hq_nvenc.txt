@@ -1,0 +1,1 @@
+ffmpeg -i ref.mp4 -c:v h264_nvenc -qp 25 -preset p7 -rc-lookahead 15 -spatial-aq 1 -aq-strength 8  -temporal_aq 1 -bf 2 -b_ref_mode middle -tune hq -c:a libfdk_aac -b:a 256k -f mp4 -movflags +faststart out_hq.mp4
