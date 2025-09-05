@@ -15,16 +15,16 @@ Vaapi cannot be statically linked.
 
 ```
 ffmpeg -version
-ffmpeg version N-120072-g11d1b71c31 Copyright (c) 2000-2025 the FFmpeg developers
-built with gcc 12 (Ubuntu 12.3.0-17ubuntu1)
-configuration: --pkg-config-flags=--static --ld=g++ --extra-cflags='-I/usr/local/include -I/usr/local/cuda-12.8/include -I/home/john/build_temp/vmaf/libvmaf/src -I/home/john/build_temp/vmaf/libvmaf/include' --extra-ldflags='-L/usr/local/lib -L/usr/local/cuda-12.8/lib64 -L/home/john/build_temp/vmaf/libvmaf/build/src' --extra-libs='-lpthread -lm -lstdc++ -ldl -lz -lvmaf -lcudart_static -lcudadevrt -lnvrtc_static -lnppc_static -lnppial_static -lnppicc_static -lnppidei_static -lnppif_static -lnppig_static -lnppim_static -lnppist_static -lnppisu_static -lnppitc_static -lnpps_static' --enable-gpl --enable-libvmaf --enable-static --disable-shared --enable-gnutls --enable-libnpp --enable-nonfree --enable-libx264 --enable-libx265 --enable-libaom --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libopus --enable-libsvtav1 --enable-libdav1d --enable-libvorbis --enable-libvpx --enable-nvdec --enable-nvenc --enable-cuvid --enable-cuda --enable-cuda-nvcc --enable-ffnvcodec --enable-lv2
-libavutil      60.  4.101 / 60.  4.101
-libavcodec     62.  4.103 / 62.  4.103
-libavformat    62.  1.101 / 62.  1.101
-libavdevice    62.  0.100 / 62.  0.100
-libavfilter    11.  0.100 / 11.  0.100
-libswscale      9.  0.100 /  9.  0.100
-libswresample   6.  0.100 /  6.  0.100
+ffmpeg version N-120987-gfb4407797e Copyright (c) 2000-2025 the FFmpeg developers
+built with gcc 12 (Ubuntu 12.4.0-2ubuntu1~24.04)
+configuration: --pkg-config-flags=--static --ld=g++ --extra-cflags='-I/usr/local/include -I/usr/local/cuda-12.8/include -I/home/john/build_temp/vmaf/libvmaf/src -I/home/john/build_temp/vmaf/libvmaf/include' --extra-ldflags='-L/usr/local/lib -L/usr/local/cuda-12.8/lib64 -L/home/john/build_temp/vmaf/libvmaf/build/src' --extra-libs='-lpthread -lm -lstdc++ -ldl -lz -lvmaf -lcudart_static -lcudadevrt -lnvrtc_static -lnppc_static -lnppial_static -lnppicc_static -lnppidei_static -lnppif_static -lnppig_static -lnppim_static -lnppist_static -lnppisu_static -lnppitc_static -lnpps_static' --enable-gpl --enable-libvmaf --enable-static --disable-shared --enable-gnutls --enable-libnpp --enable-nonfree --enable-libx264 --enable-libx265 --enable-libaom --enable-libass --enable-libfdk-aac --enable-libfreetype --enable-libmp3lame --enable-libwebp --enable-libvpx --enable-libvorbis --enable-libopus --enable-libsvtav1 --enable-libdav1d --enable-libvorbis --enable-libvpx --enable-nvdec --enable-nvenc --enable-cuvid --enable-cuda --enable-cuda-nvcc --enable-ffnvcodec --enable-lv2
+libavutil      60. 12.100 / 60. 12.100
+libavcodec     62. 15.100 / 62. 15.100
+libavformat    62.  4.102 / 62.  4.102
+libavdevice    62.  2.100 / 62.  2.100
+libavfilter    11.  8.100 / 11.  8.100
+libswscale      9.  3.100 /  9.  3.100
+libswresample   6.  2.100 /  6.  2.100
 
 Exiting with exit code 0
 ```
