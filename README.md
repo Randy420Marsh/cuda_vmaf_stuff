@@ -1,7 +1,8 @@
 It took a whole day to get the libvmaf_cuda build to finally complete.
-And then i tried to build a static binary but failed.
+And then i tried to build a static binary but it failed.
+
 So i made a script to automate the build, while its not fully static it should provide a starting point
-if you are completely lost how to build the cuda accelerated ffmpeg version with cuda accelerated vmaf "libvmaf_cuda".
+if you are completely lost on how to build the cuda and nvenc accelerated ffmpeg version with cuda accelerated vmaf "libvmaf_cuda".
 
 It is several times faster than the stantard version.
 
