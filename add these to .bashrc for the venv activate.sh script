@@ -1,0 +1,5 @@
+if [ -f "$MORE_STARTUP" ]; then
+    . $MORE_STARTUP
+elif [ -n "$MORE_STARTUP" ]; then
+    echo "Warning! Could not run ${MORE_STARTUP}"
+fi
