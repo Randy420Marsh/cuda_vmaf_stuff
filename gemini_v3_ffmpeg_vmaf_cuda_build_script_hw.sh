@@ -25,6 +25,8 @@
 
 #https://us.download.nvidia.com/XFree86/Linux-x86_64/580.105.08/NVIDIA-Linux-x86_64-580.105.08.run
 
+#sudo chmod +x ./NVIDIA-Linux-x86_64-580.105.08.run
+
 #Autosign and driver installer
 #./driver-install.sh
 
