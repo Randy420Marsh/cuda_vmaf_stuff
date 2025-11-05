@@ -14,6 +14,20 @@
 # 4. Internet Connection: Required to download packages and clone repositories.
 # 5. Root Privileges: The script will use `sudo` for system-wide installations.
 
+#Download and install the cuda and the latest display driver:
+
+#wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-ubuntu2204.pin
+#sudo mv cuda-ubuntu2204.pin /etc/apt/preferences.d/cuda-repository-pin-600
+#wget https://developer.download.nvidia.com/compute/cuda/13.0.2/local_installers/cuda-repo-ubuntu2204-13-0-local_13.0.2-580.95.05-1_amd64.deb
+#sudo dpkg -i cuda-repo-ubuntu2204-13-0-local_13.0.2-580.95.05-1_amd64.deb
+#sudo cp /var/cuda-repo-ubuntu2204-13-0-local/cuda-*-keyring.gpg /usr/share/keyrings/
+#sudo apt-get updatesudo apt-get -y install cuda-toolkit-13-0
+
+#https://us.download.nvidia.com/XFree86/Linux-x86_64/580.105.08/NVIDIA-Linux-x86_64-580.105.08.run
+
+#Autosign and driver installer
+#./driver-install.sh
+
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
@@ -133,13 +147,15 @@ echo "Core dependencies installed."
 echo "Starting VMAF and FFmpeg build process..."
 
 # --- 1. Define Variables ---
-VMAF_TAG="master"
-FFMPEG_TAG="master"
-NV_CODEC_HEADERS_TAG="master"
+VMAF_TAG="v3.0.0-117-g7c4beca3"
+FFMPEG_TAG="n8.1-dev-1030-g3eb0cb3b0b"
+NV_CODEC_HEADERS_TAG="n13.0.19.0-2-g876af32"
+LV2_VERSION="1.18.10"
 
 echo "Using VMAF tag: $VMAF_TAG"
 echo "Using FFmpeg tag: $FFMPEG_TAG"
 echo "Expecting CUDA in ${CUDA_PATH}"
+echo "Expecting CUDA in ${LV2_VERSION}"
 
 # Change to build directory
 cd "$HOME/build_temp"
@@ -166,7 +182,6 @@ cd "$HOME/build_temp"
 
 # --- 4. Build LV2 (Audio Plugin Specification) ---
 echo "Building LV2, disabling documentation and examples to avoid dependency errors..."
-LV2_VERSION="1.18.10"
 if [ ! -d "lv2-${LV2_VERSION}" ]; then
     curl -o "lv2-${LV2_VERSION}.tar.xz" "https://lv2plug.in/spec/lv2-${LV2_VERSION}.tar.xz"
     tar xf lv2-${LV2_VERSION}.tar.xz
