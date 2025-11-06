@@ -10,7 +10,7 @@ import tempfile
 import re
 import shutil # Import shutil for file copying
 
-#python -s find_crf.py -i "test.mp4" -e hevc_nvenc -p p7 -t 95 --min-quality-param 20 --max-quality-param 30 --search-precision 1.0 --max-iterations 10 --sample-duration 60 --save-frames-to "$HOME/cuda_vmaf_stuff/frames" --save-samples-to "$HOME/cuda_vmaf_stuff/frames"
+#python -s find_crf.py -i "$HOME/build/data/ref.mp4" -e hevc_nvenc -p p7 -t 95 --min-quality-param 20 --max-quality-param 30 --search-precision 1.0 --max-iterations 10 --sample-duration 60 --save-frames-to "$HOME/cuda_vmaf_stuff/frames" --save-samples-to "$HOME/cuda_vmaf_stuff/frames"
 
 
 # --- Configuration (These will be overwritten by command-line arguments if provided) ---

@@ -32,8 +32,9 @@ else
 fi
 
 # Convert reference video to MP4s with x264 and NVENC
-echo "Converting ref.mp4 to dist-x264.mp4 using libx264..."
-ffmpeg -i "${HOME}/build/data/ref.mp4" -c:v libx264 -preset fast -pix_fmt yuv420p "${HOME}/build/data/dist-x264.mp4"
+#echo "Converting ref.mp4 to dist-x264.mp4 using libx264..."
+#ffmpeg -i "${HOME}/build/data/ref.mp4" -c:v libx264 -preset fast -pix_fmt yuv420p "${HOME}/build/data/dist-x264.mp4"
+
 echo "Converting ref.mp4 to dist-nvenc.mp4 using h264_nvenc..."
 ffmpeg -i "${HOME}/build/data/ref.mp4" -c:v h264_nvenc -preset p7 -pix_fmt yuv420p "${HOME}/build/data/dist-nvenc.mp4"
 echo "Test videos converted."
@@ -44,21 +45,25 @@ ffmpeg -hwaccels
 ffmpeg -encoders
 
 echo "Running VMAF analysis with CPU decoding (libvmaf, software)..."
-ffmpeg -i "${HOME}/build/data/ref.mp4" -i "${HOME}/build/data/dist-x264.mp4" -filter_complex "[0:v]scale=1920:1080[ref];[1:v]scale=1920:1080[dist];[dist][ref]libvmaf" -f null -
+ffmpeg \
+  -i "${HOME}/build/data/ref.mp4" \
+  -i "${HOME}/build/data/dist-nvenc.mp4" \
+  -filter_complex "[0:v]scale=1920:1080[ref];[1:v]scale=1920:1080[dist];[dist][ref]libvmaf" \
+  -f null -
 
 echo "Running VMAF analysis with GPU decoding and libvmaf_cuda (recommended configuration)..."
 # Use -hwaccel cuda -hwaccel_output_format cuda BEFORE EACH -i
 ffmpeg \
   -hwaccel cuda -hwaccel_output_format cuda -i "${HOME}/build/data/ref.mp4" \
-  -hwaccel cuda -hwaccel_output_format cuda -i "${HOME}/build/data/dist-x264.mp4" \
-  -filter_complex "[0:v]scale_cuda=1920:1080:format=yuv420p[ref];[1:v]scale_cuda=1920:1080:format=yuv420p[dist];[dist][ref]libvmaf_cuda" \
-  -f null -
-
-ffmpeg \
-  -hwaccel cuda -hwaccel_output_format cuda -i "${HOME}/build/data/ref.mp4" \
   -hwaccel cuda -hwaccel_output_format cuda -i "${HOME}/build/data/dist-nvenc.mp4" \
   -filter_complex "[0:v]scale_cuda=1920:1080:format=yuv420p[ref];[1:v]scale_cuda=1920:1080:format=yuv420p[dist];[dist][ref]libvmaf_cuda" \
   -f null -
+
+#ffmpeg \
+#  -hwaccel cuda -hwaccel_output_format cuda -i "${HOME}/build/data/ref.mp4" \
+#  -hwaccel cuda -hwaccel_output_format cuda -i "${HOME}/build/data/dist-x264.mp4" \
+#  -filter_complex "[0:v]scale_cuda=1920:1080:format=yuv420p[ref];[1:v]scale_cuda=1920:1080:format=yuv420p[dist];[dist][ref]libvmaf_cuda" \
+#  -f null -
 
 echo "VMAF analysis commands executed. Script will pause for 5 seconds."
 sleep 5
