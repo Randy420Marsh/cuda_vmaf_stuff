@@ -8,8 +8,8 @@
 # 1. NVIDIA GPU: Ensure you have a compatible NVIDIA GPU.
 # 2. NVIDIA Drivers: Ensure NVIDIA proprietary drivers are correctly installed on your system.
 #    You can typically install them using `sudo ubuntu-drivers autoinstall`.
-# 3. CUDA Toolkit: The script expects CUDA to be installed in `/usr/local/cuda-13.0`.
-#    If you haven't installed CUDA 13.0, download and install the appropriate version
+# 3. CUDA Toolkit: The script expects CUDA to be installed in `/usr/local/cuda-13.1`.
+#    If you haven't installed CUDA 13.1, download and install the appropriate version
 #    from NVIDIA's website for Ubuntu 24.04.
 # 4. Internet Connection: Required to download packages and clone repositories.
 # 5. Root Privileges: The script will use `sudo` for system-wide installations.
@@ -34,7 +34,7 @@ echo "Python virtual environment configured."
 
 # --- Set Environment Variables for CUDA and Libraries ---
 # These are crucial for the build process to find CUDA components and custom libraries.
-CUDA_VERSION="13.0"
+CUDA_VERSION="12.8"
 CUDA_PATH="/usr/local/cuda-${CUDA_VERSION}"
 
 # FIX: Explicitly prioritize the custom pkgconfig path over system paths,
